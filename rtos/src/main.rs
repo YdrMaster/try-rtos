@@ -3,9 +3,9 @@
 #![feature(naked_functions, asm_const)]
 #![deny(warnings)]
 
-/// Supervisor 汇编入口。
-///
-/// 设置栈并跳转到 Rust。
+#[macro_use]
+mod hal;
+
 #[naked]
 #[no_mangle]
 #[link_section = ".text.entry"]
@@ -25,18 +25,15 @@ unsafe extern "C" fn _start() -> ! {
     )
 }
 
-/// 非常简单的 Supervisor 裸机程序。
-///
-/// 打印 `Hello, World!`，然后关机。
 extern "C" fn rust_main() -> ! {
-    for c in b"Hello, world!\n" {
-        unsafe { (0x1000_0000 as *mut usize).write_volatile(*c as _) };
-    }
+    println!("Hello, world!");
+    unsafe { hal::shutdown(0) };
     unreachable!()
 }
 
-/// Rust 异常处理函数，以异常方式关机。
 #[panic_handler]
-fn panic(_: &core::panic::PanicInfo) -> ! {
+fn panic(info: &core::panic::PanicInfo) -> ! {
+    println!("{info}");
+    unsafe { hal::shutdown(1) };
     loop {}
 }
