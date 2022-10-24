@@ -1,0 +1,3 @@
+[workspace]
+members = ["xtask", "rtos"]
+default-members = ["xtask"]
